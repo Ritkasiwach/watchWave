@@ -1,0 +1,18 @@
+{
+  "name": "youtube-watch-party",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Real-time YouTube Watch Party (React + Socket.IO)",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend ci --include=dev && npm --prefix frontend run build && npm --prefix backend ci --include=dev && npm --prefix backend run build",
+    "start": "npm --prefix backend start",
+    "test": "npm --prefix backend test",
+    "lint": "npm --prefix frontend run lint"
+  }
+}

@@ -1,0 +1,17 @@
+# Render Blueprint: one web service that serves BOTH the API/WebSocket server and the built React app.
+# Deploy: Render dashboard -> New -> Blueprint -> pick this repo.
+services:
+  - type: web
+    name: youtube-watch-party
+    runtime: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      # Not needed for this single-service setup (same origin). Uncomment only if you host the
+      # frontend elsewhere, and list its URL(s):
+      # - key: FRONTEND_URL
+      #   value: https://your-frontend.vercel.app
