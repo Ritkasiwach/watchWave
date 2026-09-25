@@ -240,7 +240,7 @@ const Room: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               <span style={{ fontWeight: 700, fontSize: '15px', letterSpacing: '-0.02em', lineHeight: '1' }}>WatchParty</span>
               <span style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 600 }}>
-                by Ritika • <a href="https://github.com/Ritkasiwach" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>GitHub</a> • <a href="https://linkedin.com/in/ritikasiwach" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>LinkedIn</a>
+                by Ritika • <a href="https://github.com/Ritkasiwach" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>GitHub</a> • <a href="https://www.linkedin.com/in/ritikasiwach0202" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>LinkedIn</a>
               </span>
             </div>
           </div>
