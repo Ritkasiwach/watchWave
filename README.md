@@ -2,7 +2,7 @@
 
 Watch YouTube videos in sync with friends. One person creates a room, everyone else joins with a code or link, and play / pause / seek / video changes are mirrored to the whole room in real time over WebSockets (Socket.IO). Rooms have roles: the **Host** and **Moderators** control playback; **Participants** watch and can *request* changes that a Host/Moderator approves.
 
-**Live URL:** `https://<your-app>.onrender.com` &nbsp;← _replace with your deployed URL after following [Deploy](#deploy-render-recommended)_
+**Live URL:** `https://youtube-watch-party-ske3.onrender.com/`;
 
 ## Tech stack
 

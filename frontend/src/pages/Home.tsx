@@ -135,6 +135,13 @@ const Home: React.FC = () => {
           Sync playback in real time. Host controls the room.<br />
           Moderators help. Participants watch.
         </p>
+        <div style={{ marginTop: '16px', fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+          <span>Made with ❤️ by <strong>Ritika Siwach</strong></span>
+          <span>|</span>
+          <a href="https://github.com/Ritkasiwach" target="_blank" rel="noreferrer" style={{ color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = 'var(--accent)'} onMouseOut={e => e.currentTarget.style.color = 'var(--text-secondary)'}>GitHub</a>
+          <span>|</span>
+          <a href="https://linkedin.com/in/ritikasiwach" target="_blank" rel="noreferrer" style={{ color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = 'var(--accent)'} onMouseOut={e => e.currentTarget.style.color = 'var(--text-secondary)'}>LinkedIn</a>
+        </div>
       </div>
 
       {/* Cards */}

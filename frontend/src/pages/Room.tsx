@@ -237,7 +237,12 @@ const Room: React.FC = () => {
             }}>
               <span style={{ fontSize: '12px', fontWeight: 800, color: '#fff' }}>▶</span>
             </div>
-            <span style={{ fontWeight: 700, fontSize: '15px', letterSpacing: '-0.02em' }}>WatchParty</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <span style={{ fontWeight: 700, fontSize: '15px', letterSpacing: '-0.02em', lineHeight: '1' }}>WatchParty</span>
+              <span style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                by Ritika • <a href="https://github.com/Ritkasiwach" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>GitHub</a> • <a href="https://linkedin.com/in/ritikasiwach" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>LinkedIn</a>
+              </span>
+            </div>
           </div>
 
           <div style={{ width: '1px', height: '20px', background: 'var(--border)' }} />
