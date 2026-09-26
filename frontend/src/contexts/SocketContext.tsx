@@ -75,7 +75,9 @@ const SocketContext = createContext<SocketContextProps>({
   setRoomData: () => {},
   playback: DEFAULT_PLAYBACK,
   requests: [],
+  chatMessages: [],
   leaveRoom: () => {},
+  sendChat: () => {},
 });
 
 // In production the frontend is normally served by the backend (same origin).
