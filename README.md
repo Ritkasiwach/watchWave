@@ -1,7 +1,6 @@
 # 🌊 WatchWave
 
-**Live App:** [https://youtube-watch-party-ske3.onrender.com/](https://youtube-watch-party-ske3.onrender.com/)
-
+**Live App:** ` https://watchwave-f34w.onrender.com`
 WatchWave is a real-time YouTube watch party app where you can sync playback with your friends. One person creates a room, everyone else joins via a code or invite link, and every play, pause, seek, or video change is perfectly mirrored across the room in real time!
 
 I built this with a smooth, modern oceanic UI (dark navy & red accents) so it doesn't look like your typical generic side project. Made with love by Ritika Siwach. ❤️
