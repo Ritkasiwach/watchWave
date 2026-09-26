@@ -1,40 +1,21 @@
 # Architecture Overview: WatchWave 
 
 ## 1. Technology Stack
-* **Frontend:** React 19, TypeScript, and Vite. Utilizes `react-youtube` for the iframe player and a custom `SocketContext` provider for global real-time state management.
+* **Frontend:** React , TypeScript, and Vite. Utilizes `react-youtube` for the iframe player and a custom `SocketContext` provider for global real-time state management.
 * **Backend:** Node.js and Express running a Socket.IO WebSocket server (written in TypeScript). 
 * **Deployment:** Hosted as a unified full-stack web service on Render, where the Express backend serves the built React frontend static files to avoid cross-origin issues.
 
 ## 2. System Architecture & Data Flow
-
-The following Mermaid diagram illustrates the WebSocket event flow, showing how the "Single Source of Truth" pattern handles both privileged actions (Host) and restricted actions (Participant).
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor H as Host / Moderator
-    participant S as Server (RoomManager)
-    actor P as Participant (Viewer)
-
-    Note over H, P: Scenario 1: Privileged user changes playback
-    H->>S: emit('pause')
-    S->>S: validate permission (Role == Host/Mod)
-    S->>S: update internal video state
-    S-->>H: broadcast('pause')
-    S-->>P: broadcast('pause')
-
-    Note over H, P: Scenario 2: Participant requests a change
-    P->>S: emit('request_action', { type: 'seek', time: 60 })
-    S->>S: validate limits & queue request
-    S-->>P: emit('request_submitted')
-    S-->>H: emit('requests_updated', newQueue)
+    ClientAction[User clicks Pause/Play/Seek] --> RoleCheck{Is User Host or Mod?}
+    RoleCheck -- Yes --> UpdateState[Update Room State on Server]
+    RoleCheck -- No --> Queue[Add to Approval Queue]
     
-    H->>S: emit('resolve_request', { approve: true })
-    S->>S: apply seek to internal video state
-    S-->>H: broadcast('seek', 60)
-    S-->>P: broadcast('seek', 60)
-    S-->>P: emit('request_resolved', { approved: true })
-```
+    Queue --> HostAction[Host/Mod Approves]
+    HostAction --> UpdateState
+    
+    UpdateState --> Broadcast[Broadcast Event to ALL Clients via WebSockets]
+    Broadcast --> PlayerUpdate[All YouTube Players Sync Simultaneously]
+
 
 ## 3. Core Mechanics
 
