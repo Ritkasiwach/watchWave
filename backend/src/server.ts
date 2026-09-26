@@ -18,12 +18,9 @@ import {
 
 dotenv.config();
 
-// ---------------------------------------------------------------------------
-// Config
-// ---------------------------------------------------------------------------
+// setup and config
 
-// Comma-separated list of allowed browser origins (only needed when the frontend
-// is hosted on a different origin than this server, e.g. Vercel/Netlify + Render).
+// we need this to allow frontend requests from different places (like if frontend is on vercel and backend is on render)
 const ALLOWED_ORIGINS = (process.env.FRONTEND_URL || 'http://localhost:5173')
   .split(',')
   .map(s => s.trim().replace(/\/$/, ''))
@@ -96,9 +93,7 @@ if (fs.existsSync(path.join(FRONTEND_DIST, 'index.html'))) {
   console.log(`Serving frontend from ${FRONTEND_DIST}`);
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+// util functions
 
 type Ack = (res: Record<string, unknown>) => void;
 
@@ -202,6 +197,7 @@ function joinRoomAs(socket: Socket, roomId: string, user: User) {
   socket.emit('room_state', {
     roomId,
     participants,
+    messages: roomManager.getMessages(roomId),
     videoState: roomManager.getSnapshot(roomId)
   });
   socket.emit('sync_state', roomManager.getSnapshot(roomId));
@@ -212,14 +208,12 @@ function joinRoomAs(socket: Socket, roomId: string, user: User) {
   return participants;
 }
 
-// ---------------------------------------------------------------------------
-// Socket handlers
-// ---------------------------------------------------------------------------
+// socket stuff
 
 io.on('connection', (socket: Socket) => {
   console.log(`Socket connected: ${socket.id}`);
 
-  /** Register a handler that can never crash the process on malformed payloads. */
+  // wrapper so we don't crash the server if someone sends garbage data
   const on = <P = any>(event: string, handler: (payload: P, ack?: Ack) => void) => {
     socket.on(event, (payload: P, ack?: unknown) => {
       // Clients may omit the payload and pass only an ack callback.
@@ -289,10 +283,7 @@ io.on('connection', (socket: Socket) => {
       return;
     }
 
-    if (roomManager.isUsernameTaken(roomId, username)) {
-      return sendError(socket, ack, 'DUPLICATE_USERNAME', 'Username is already taken in this room.');
-    }
-
+    // we used to prevent duplicate names here, but it's fine if two people are named Bob
     leaveCurrentRoom(socket);
 
     const user: User = { id: socket.id, username, role: 'Participant' };
@@ -309,7 +300,7 @@ io.on('connection', (socket: Socket) => {
     if (ack) ack({ ok: true, roomId, user });
   });
 
-  // ---- Playback (Host / Moderator only) ----------------------------------
+  // playback controls
 
   const playbackHandler =
     (type: 'play' | 'pause' | 'seek') =>
@@ -339,7 +330,7 @@ io.on('connection', (socket: Socket) => {
     applyPlayback(ctx.roomId, { type: 'change_video', videoId: payload.videoId }, ctx.user.username);
   });
 
-  // ---- Approval flow (Participant asks, Host/Moderator decides) ----------
+  // handles users asking for permission to change stuff
 
   on<{ type: RequestType; time?: number; videoId?: string }>('request_action', payload => {
     const ctx = getContext();
@@ -413,7 +404,7 @@ io.on('connection', (socket: Socket) => {
     broadcastRequests(ctx.roomId);
   });
 
-  // ---- Roles (Host only) -------------------------------------------------
+  // roles
 
   on<{ userId: string; role: Role }>('assign_role', payload => {
     const ctx = getContext();
@@ -505,6 +496,25 @@ io.on('connection', (socket: Socket) => {
     broadcastRequests(ctx.roomId);
   });
 
+  // ---- Chat --------------------------------------------------------------
+
+  on<{ text: string }>('send_chat', payload => {
+    const ctx = getContext();
+    if (!ctx) return;
+    if (typeof payload?.text !== 'string' || !payload.text.trim()) return;
+
+    const message = roomManager.addMessage(ctx.roomId, {
+      userId: ctx.user.id,
+      username: ctx.user.username,
+      role: ctx.user.role,
+      text: payload.text.trim().substring(0, 500) // cap length
+    });
+
+    if (message) {
+      io.to(ctx.roomId).emit('chat_message', message);
+    }
+  });
+
   on('leave_room', () => {
     leaveCurrentRoom(socket);
   });
@@ -515,9 +525,7 @@ io.on('connection', (socket: Socket) => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Start
-// ---------------------------------------------------------------------------
+// boot it up
 
 const PORT = Number(process.env.PORT) || 3001;
 

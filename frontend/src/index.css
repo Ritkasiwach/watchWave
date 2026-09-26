@@ -7,25 +7,26 @@
 }
 
 :root {
-  --bg-primary: #0f0f13;
-  --bg-secondary: #16161d;
-  --bg-card: #1e1e28;
-  --bg-hover: #25252f;
-  --border: #2a2a38;
-  --border-subtle: #1e1e2a;
-  --accent: #e5193a;
-  --accent-hover: #c5102e;
-  --accent-dim: rgba(229, 25, 58, 0.15);
+  --bg-primary: #0a192f;
+  --bg-secondary: #112240;
+  --bg-card: #1f3b60;
+  --bg-input: #0f1e38;
+  --bg-hover: #264a78;
+  --border: #30588c;
+  --border-subtle: #264a78;
+  --accent: #f00b0b;
+  --accent-hover: #d10a0a;
+  --accent-dim: rgba(240, 11, 11, 0.15);
   --purple: #8b5cf6;
   --purple-dim: rgba(139, 92, 246, 0.15);
-  --green: #22c55e;
-  --green-dim: rgba(34, 197, 94, 0.15);
-  --text-primary: #f1f1f5;
-  --text-secondary: #9999b0;
-  --text-muted: #5a5a7a;
+  --green: #10b981;
+  --green-dim: rgba(16, 185, 129, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #a3b8cc;
+  --text-muted: #728ca6;
   --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 16px;
+  --radius-lg: 20px;
 }
 
 body {
@@ -117,13 +118,13 @@ body {
   display: block;
   width: 100%;
   padding: 0 14px;
-  height: 44px;
-  background: var(--bg-primary);
+  height: 48px;
+  background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 14px;
+  font-size: 15px;
   transition: border-color 0.15s ease;
 }
 .input::placeholder { color: var(--text-muted); }

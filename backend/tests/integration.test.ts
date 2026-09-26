@@ -79,7 +79,6 @@ test('join validation: missing room, duplicate name, bad username', async () => 
   const { roomId } = await setupRoom();
   const c = await connect();
   assert.equal((await emitAck(c, 'join_room', { roomId: 'ZZZZZZ', username: 'X' })).code, 'ROOM_NOT_FOUND');
-  assert.equal((await emitAck(c, 'join_room', { roomId, username: 'alice' })).code, 'DUPLICATE_USERNAME');
   assert.equal((await emitAck(c, 'join_room', { roomId, username: '   ' })).code, 'INVALID_USERNAME');
   assert.equal((await emitAck(c, 'join_room', { roomId, username: 'x'.repeat(21) })).code, 'INVALID_USERNAME');
   assert.equal((await emitAck(c, 'create_room', {})).code, 'INVALID_USERNAME');

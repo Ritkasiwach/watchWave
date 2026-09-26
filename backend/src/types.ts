@@ -2,7 +2,7 @@ export type Role = 'Host' | 'Moderator' | 'Participant';
 export type PlayState = 'playing' | 'paused';
 
 export interface User {
-  id: string; // Socket ID
+  id: string; // socket id
   username: string;
   role: Role;
 }
@@ -11,10 +11,10 @@ export interface VideoState {
   videoId: string;
   isPlaying: boolean;
   timeSeconds: number;
-  lastUpdatedAt: number; // server timestamp (ms) of the last change
+  lastUpdatedAt: number; // needed for extrapolating time
 }
 
-/** Snapshot sent to clients: time is already extrapolated to "now" on the server. */
+// what the client actually gets
 export interface SyncSnapshot {
   videoId: string;
   playState: PlayState;
@@ -23,7 +23,7 @@ export interface SyncSnapshot {
 
 export type RequestType = 'play' | 'pause' | 'seek' | 'change_video';
 
-/** A playback change asked for by a Participant that a Host/Moderator must approve. */
+// when a normal user wants to change stuff, they make one of these
 export interface ActionRequest {
   id: string;
   userId: string;
@@ -34,11 +34,21 @@ export interface ActionRequest {
   createdAt: number;
 }
 
+export interface ChatMessage {
+  id: string;
+  userId: string;
+  username: string;
+  role: Role;
+  text: string;
+  timestamp: number;
+}
+
 export interface RoomState {
   id: string;
-  users: Map<string, User>; // Internal (insertion order = join order)
+  users: Map<string, User>; 
   videoState: VideoState;
   requests: ActionRequest[];
+  messages: ChatMessage[];
 }
 
 export interface ClientUser {
@@ -50,4 +60,5 @@ export interface ClientUser {
 export interface RoomInfo {
   roomId: string;
   participants: ClientUser[];
+  messages?: ChatMessage[];
 }

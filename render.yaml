@@ -2,7 +2,7 @@
 # Deploy: Render dashboard -> New -> Blueprint -> pick this repo.
 services:
   - type: web
-    name: youtube-watch-party
+    name: watchWave
     runtime: node
     plan: free
     buildCommand: npm run build

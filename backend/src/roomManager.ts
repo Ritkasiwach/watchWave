@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { RoomState, User, VideoState, Role, SyncSnapshot, ActionRequest } from './types';
+import { RoomState, User, VideoState, Role, SyncSnapshot, ActionRequest, ChatMessage } from './types';
 
 export const DEFAULT_VIDEO_ID = 'dQw4w9WgXcQ';
 
@@ -24,6 +24,7 @@ export class RoomManager {
       id: roomId,
       users: new Map(),
       requests: [],
+      messages: [],
       videoState: {
         videoId: DEFAULT_VIDEO_ID,
         isPlaying: false,
@@ -68,10 +69,6 @@ export class RoomManager {
     this.rooms.delete(roomId);
   }
 
-  public isUsernameTaken(roomId: string, username: string): boolean {
-    return this.getUsers(roomId).some(u => u.username.toLowerCase() === username.toLowerCase());
-  }
-
   public findRoomIdByUserSocket(socketId: string): string | null {
     for (const [roomId, room] of this.rooms.entries()) {
       if (room.users.has(socketId)) {
@@ -81,8 +78,7 @@ export class RoomManager {
     return null;
   }
 
-  // ---- Video state -------------------------------------------------------
-
+  // sync video state
   public updateVideoState(roomId: string, newState: Partial<VideoState>): void {
     const room = this.rooms.get(roomId);
     if (room) {
@@ -94,7 +90,7 @@ export class RoomManager {
     return this.rooms.get(roomId)?.videoState;
   }
 
-  /** Playback position right now (server clock), extrapolating while playing. */
+  // figure out where the video should be right now
   public getCurrentTime(roomId: string): number {
     const vs = this.getVideoState(roomId);
     if (!vs) return 0;
@@ -102,7 +98,7 @@ export class RoomManager {
     return vs.timeSeconds + (Date.now() - vs.lastUpdatedAt) / 1000;
   }
 
-  /** What clients need to sync. Uses server-computed time so client clock skew doesn't matter. */
+  // what we actually send to the client
   public getSnapshot(roomId: string): SyncSnapshot | undefined {
     const vs = this.getVideoState(roomId);
     if (!vs) return undefined;
@@ -113,8 +109,6 @@ export class RoomManager {
     };
   }
 
-  // ---- Roles -------------------------------------------------------------
-
   public updateUserRole(roomId: string, userId: string, newRole: Role): void {
     const user = this.rooms.get(roomId)?.users.get(userId);
     if (user) {
@@ -122,14 +116,13 @@ export class RoomManager {
     }
   }
 
-  /** Who becomes Host when the current Host leaves: first Moderator, else longest-present Participant. */
+  // find the next best host if the current one bails
   public pickNextHost(roomId: string): User | undefined {
     const users = this.getUsers(roomId);
     return users.find(u => u.role === 'Moderator') ?? users.find(u => u.role !== 'Host');
   }
 
-  // ---- Approval requests -------------------------------------------------
-
+  // manage pending requests
   public getRequests(roomId: string): ActionRequest[] {
     return this.rooms.get(roomId)?.requests ?? [];
   }
@@ -156,4 +149,22 @@ export class RoomManager {
       room.requests = room.requests.filter(r => r.userId !== userId);
     }
   }
+
+  // chat stuff
+  public addMessage(roomId: string, message: Omit<ChatMessage, 'id' | 'timestamp'>): ChatMessage | undefined {
+    const room = this.rooms.get(roomId);
+    if (!room) return undefined;
+    const full: ChatMessage = { ...message, id: randomUUID(), timestamp: Date.now() };
+    room.messages.push(full);
+    // don't let it grow infinitely, cap at 100
+    if (room.messages.length > 100) {
+      room.messages.shift();
+    }
+    return full;
+  }
+
+  public getMessages(roomId: string): ChatMessage[] {
+    return this.rooms.get(roomId)?.messages ?? [];
+  }
 }
+

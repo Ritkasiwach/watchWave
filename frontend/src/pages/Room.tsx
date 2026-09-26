@@ -4,6 +4,7 @@ import { useSocket } from '../contexts/SocketContext';
 import type { User } from '../contexts/SocketContext';
 import YouTubePlayer from '../components/YouTubePlayer';
 import RequestsPanel from '../components/RequestsPanel';
+import ChatPanel from '../components/ChatPanel';
 import { Copy, Link2, LogOut, Check, Crown, Shield, User as UserIcon, Users, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -126,7 +127,7 @@ const ParticipantCard: React.FC<{
   );
 };
 
-/** Shown when someone opens an invite link (/room/CODE) without having joined yet. */
+// what they see before they actually join the room
 const JoinPrompt: React.FC<{ roomId: string }> = ({ roomId }) => {
   const navigate = useNavigate();
   const { socket, isConnected } = useSocket();
@@ -142,7 +143,7 @@ const JoinPrompt: React.FC<{ roomId: string }> = ({ roomId }) => {
     socket.emit('join_room', { roomId, username: username.trim() }, (res: { ok: boolean; message?: string }) => {
       setLoading(false);
       if (!res?.ok) setError(res?.message || 'Could not join the room.');
-      // On success the server's room_state event puts us in the room and this page re-renders.
+      // if successful, the server sends a room_state event which triggers a re-render automatically
     });
   };
 
@@ -191,7 +192,7 @@ const Room: React.FC = () => {
   const inRoom = roomData?.roomId === roomId;
   const wasInRoom = useRef(false);
 
-  // If we were in this room and are no longer (kicked / disconnected), go home.
+  // kick them back to home if they get disconnected or removed from the room
   useEffect(() => {
     if (inRoom) wasInRoom.current = true;
     else if (wasInRoom.current) navigate('/');
@@ -310,7 +311,7 @@ const Room: React.FC = () => {
           </div>
 
           {/* Participant List */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{ flex: '1 1 40%', overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', minHeight: '150px' }}>
             {participants.map(user => (
               <ParticipantCard
                 key={user.id}
@@ -325,24 +326,9 @@ const Room: React.FC = () => {
             ))}
           </div>
 
-          {/* Sidebar footer: role legend */}
-          <div style={{
-            padding: '12px 20px', borderTop: '1px solid var(--border)',
-            display: 'flex', flexDirection: 'column', gap: '6px'
-          }}>
-            <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '4px' }}>
-              Role Legend
-            </div>
-            {[
-              { badge: <span className="badge badge-host"><Crown size={9}/>Host</span>, desc: 'Full control, roles, remove' },
-              { badge: <span className="badge badge-moderator"><Shield size={9}/>Mod</span>, desc: 'Playback + approves requests' },
-              { badge: <span className="badge badge-participant"><UserIcon size={9}/>Viewer</span>, desc: 'Watch; asks for changes' },
-            ].map((item, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {item.badge}
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{item.desc}</span>
-              </div>
-            ))}
+          {/* Chat Panel */}
+          <div style={{ flex: '1 1 60%', display: 'flex', minHeight: '250px' }}>
+            <ChatPanel />
           </div>
         </div>
       </div>

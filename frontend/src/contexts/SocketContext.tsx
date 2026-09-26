@@ -17,13 +17,25 @@ export interface RoomData {
   participants: User[];
 }
 
-/** Shared playback state. `receivedAt`/`seq` let the player extrapolate and react to every server event. */
+/** 
+ * Shared playback state. 
+ * receivedAt and seq help the player figure out what to do when multiple updates fire 
+ */
 export interface PlaybackState {
   videoId: string;
   playState: 'playing' | 'paused';
   currentTime: number;
   receivedAt: number;
   seq: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  userId: string;
+  username: string;
+  role: Role;
+  text: string;
+  timestamp: number;
 }
 
 export interface ActionRequest {
@@ -43,7 +55,9 @@ interface SocketContextProps {
   setRoomData: React.Dispatch<React.SetStateAction<RoomData | null>>;
   playback: PlaybackState;
   requests: ActionRequest[];
+  chatMessages: ChatMessage[];
   leaveRoom: () => void;
+  sendChat: (text: string) => void;
 }
 
 const DEFAULT_PLAYBACK: PlaybackState = {
@@ -85,6 +99,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [roomData, setRoomData] = useState<RoomData | null>(null);
   const [playback, setPlayback] = useState<PlaybackState>(DEFAULT_PLAYBACK);
   const [requests, setRequests] = useState<ActionRequest[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   const socketRef = useRef<Socket | null>(null);
   const roomRef = useRef<RoomData | null>(null);
@@ -96,7 +111,12 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (roomRef.current) socketRef.current?.emit('leave_room', {});
     setRoomData(null);
     setRequests([]);
+    setChatMessages([]);
     setPlayback(DEFAULT_PLAYBACK);
+  }, []);
+
+  const sendChat = useCallback((text: string) => {
+    if (socketRef.current) socketRef.current.emit('send_chat', { text });
   }, []);
 
   useEffect(() => {
@@ -123,15 +143,25 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (roomRef.current) toast.error('Connection lost. Please rejoin the room.', { duration: 4000 });
       setRoomData(null);
       setRequests([]);
+      setChatMessages([]);
     });
 
-    s.on('room_state', (data: RoomData & { videoState?: SyncPayload }) => {
+    s.on('room_state', (data: RoomData & { videoState?: SyncPayload; messages?: ChatMessage[] }) => {
       setRoomData({ roomId: data.roomId, participants: data.participants });
+      if (data.messages) setChatMessages(data.messages);
       if (data.videoState) applySync(data.videoState);
     });
     s.on('sync_state', applySync);
 
-    // Playback events (server broadcasts to everyone, including the sender)
+    s.on('chat_message', (msg: ChatMessage) => {
+      setChatMessages(prev => {
+        const next = [...prev, msg];
+        if (next.length > 100) next.shift();
+        return next;
+      });
+    });
+
+    // when someone plays/pauses/seeks, update local state
     s.on('play', (d: { time: number }) => bump({ playState: 'playing', currentTime: d.time }));
     s.on('pause', (d: { time: number }) => bump({ playState: 'paused', currentTime: d.time }));
     s.on('seek', (d: { time: number }) => bump({ currentTime: d.time }));
@@ -139,7 +169,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       bump({ videoId: d.videoId, playState: 'paused', currentTime: 0 })
     );
 
-    // Participants / roles
+    // handle users joining/leaving and role changes
     s.on('user_joined', (d: { username: string; participants: User[] }) => {
       setParticipants(d.participants);
       toast(`${d.username} joined the room`, { icon: '👋', duration: 2500 });
@@ -185,7 +215,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     });
 
-    // Publishing the external socket instance into React state is the point of this effect.
+    // save socket to state so the rest of the app can use it
     // oxlint-disable-next-line react/set-state-in-effect
     setSocket(s);
 
@@ -196,7 +226,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   return (
-    <SocketContext.Provider value={{ socket, isConnected, roomData, setRoomData, playback, requests, leaveRoom }}>
+    <SocketContext.Provider value={{ socket, isConnected, roomData, setRoomData, playback, requests, chatMessages, leaveRoom, sendChat }}>
       {children}
     </SocketContext.Provider>
   );
